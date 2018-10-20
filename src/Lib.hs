@@ -5,46 +5,41 @@
 
 module Lib where
 
-import qualified Data.Aeson                    as A
 import           Data.Foldable
 import           Data.Functor.Foldable
-import qualified Data.HashMap.Strict           as M
-import qualified Data.Text                     as T
-import qualified Data.Vector                   as V
+import qualified Data.Map                      as M
 
-data ValueF r
-  = ObjectF (M.HashMap T.Text r)
+data JSON
+  = Object (M.Map String JSON)
+  | Array [JSON]
+  | String String
+  | Number Double
+  | Bool Bool
+  | Null
+
+data JSONF r
+  = ObjectF (M.Map String r)
   | ArrayF [r]
-  | StringF T.Text
+  | StringF String
   | NumberF Double
   | BoolF Bool
   | NullF
   deriving (Functor)
 
-instance A.FromJSON (Fix ValueF) where
-  parseJSON = return . refix
+type instance Base JSON = JSONF
 
-instance A.ToJSON (Fix ValueF) where
-  toJSON = refix
+instance Recursive JSON where
+  project (Object obj) = ObjectF obj
+  project (Array  arr) = ArrayF arr
+  project (String s  ) = StringF s
+  project (Number n  ) = NumberF n
+  project (Bool b) = BoolF b
+  project Null     = NullF
 
-
-type instance Base A.Value = ValueF
-
-instance Recursive A.Value where
-  project (A.Object obj) = ObjectF obj
-  project (A.Array  arr) = ArrayF $ toList arr
-  project (A.String s  ) = StringF s
-  project (A.Number n  ) = NumberF doubleN
-    where doubleN = fromRational . toRational $ n
-  project (A.Bool b) = BoolF b
-  project A.Null     = NullF
-
-instance Corecursive A.Value where
-  embed (ObjectF o) = A.Object o
-  embed (ArrayF  a) = A.Array $ V.fromList a
-  embed (StringF s) = A.String s
-  embed (NumberF n) = (A.Number scientificN)
-    where scientificN = fromRational . toRational $ n
-  embed (BoolF b) = (A.Bool b)
-  embed NullF     = A.Null
-
+instance Corecursive JSON where
+  embed (ObjectF o) = Object o
+  embed (ArrayF  a) = Array a
+  embed (StringF s) = String s
+  embed (NumberF n) = (Number n)
+  embed (BoolF b) = (Bool b)
+  embed NullF     = Null
