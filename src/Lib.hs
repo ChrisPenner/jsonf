@@ -8,6 +8,9 @@ module Lib where
 import           Data.Foldable
 import           Data.Functor.Foldable
 import qualified Data.Map                      as M
+import           Control.Comonad.Cofree
+import           Control.Comonad.Trans.Cofree             ( CofreeF )
+import qualified Data.Aeson                    as A
 
 data JSON
   = Object (M.Map String JSON)
@@ -16,6 +19,7 @@ data JSON
   | Number Double
   | Bool Bool
   | Null
+  deriving (Eq, Show)
 
 data JSONF r
   = ObjectF (M.Map String r)
@@ -24,7 +28,7 @@ data JSONF r
   | NumberF Double
   | BoolF Bool
   | NullF
-  deriving (Functor)
+  deriving (Show, Eq, Functor)
 
 type instance Base JSON = JSONF
 
@@ -43,3 +47,16 @@ instance Corecursive JSON where
   embed (NumberF n) = (Number n)
   embed (BoolF b) = (Bool b)
   embed NullF     = Null
+
+paths :: JSON -> Cofree JSONF [String]
+paths = cata addPath
+ where
+  addPath :: JSONF (Cofree JSONF [String]) -> Cofree JSONF [String]
+  addPath (ObjectF o) = [] :< ObjectF (M.mapWithKey addKey o)
+    where addKey k v = (k :) <$> v
+  addPath (ArrayF a) = [] :< ArrayF (zipWith addIndex a [1 ..])
+    where addIndex a i = (show i :) <$> a
+  addPath (StringF s) = [] :< StringF s
+  addPath (NumberF n) = [] :< NumberF n
+  addPath (BoolF   b) = [] :< BoolF b
+  addPath NullF       = [] :< NullF
