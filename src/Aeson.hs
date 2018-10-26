@@ -23,7 +23,6 @@ instance A.ToJSON JSON where
 instance A.FromJSON JSON where
   parseJSON = return . refix
 
-
 type instance Base A.Value = JSONF
 
 instance Recursive A.Value where
