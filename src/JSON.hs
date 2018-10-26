@@ -2,8 +2,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TemplateHaskell #-}
 
-module Lib where
+module JSON where
 
 import           Data.Foldable
 import           Data.Functor.Foldable
@@ -11,6 +12,7 @@ import qualified Data.Map                      as M
 import           Control.Comonad.Cofree
 import           Control.Comonad.Trans.Cofree             ( CofreeF )
 import qualified Data.Aeson                    as A
+import           Text.Show.Deriving
 
 data JSON
   = Object (M.Map String JSON)
@@ -30,6 +32,8 @@ data JSONF r
   | NullF
   deriving (Show, Eq, Functor)
 
+deriveShow1 ''JSONF
+
 type instance Base JSON = JSONF
 
 instance Recursive JSON where
@@ -47,16 +51,3 @@ instance Corecursive JSON where
   embed (NumberF n) = (Number n)
   embed (BoolF b) = (Bool b)
   embed NullF     = Null
-
-paths :: JSON -> Cofree JSONF [String]
-paths = cata addPath
- where
-  addPath :: JSONF (Cofree JSONF [String]) -> Cofree JSONF [String]
-  addPath (ObjectF o) = [] :< ObjectF (M.mapWithKey addKey o)
-    where addKey k v = (k :) <$> v
-  addPath (ArrayF a) = [] :< ArrayF (zipWith addIndex a [1 ..])
-    where addIndex a i = (show i :) <$> a
-  addPath (StringF s) = [] :< StringF s
-  addPath (NumberF n) = [] :< NumberF n
-  addPath (BoolF   b) = [] :< BoolF b
-  addPath NullF       = [] :< NullF

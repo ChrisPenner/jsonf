@@ -29,28 +29,7 @@ dependencies:
 - text
 - unordered-containers
 - vector
+- deriving-compat
 
 library:
   source-dirs: src
-
-executables:
-  jsonf-exe:
-    main:                Main.hs
-    source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - jsonf
-
-tests:
-  jsonf-test:
-    main:                Spec.hs
-    source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - jsonf
