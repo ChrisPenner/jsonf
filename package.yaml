@@ -1,10 +1,10 @@
 name:                jsonf
 version:             0.1.0.0
-github:              "githubuser/jsonf"
+github:              "ChrisPenner/jsonf"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2018 Author name here"
+author:              "Chris Penner"
+maintainer:          "christopher.penner@gmail.com"
+copyright:           "2018 Chris Penner"
 
 extra-source-files:
 - README.md
@@ -25,7 +25,6 @@ dependencies:
 - containers
 - aeson
 - free
-- comonad
 - text
 - unordered-containers
 - vector
